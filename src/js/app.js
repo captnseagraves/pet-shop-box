@@ -62,9 +62,25 @@ App = {
 
     var petId = parseInt($(event.target).data('id'));
 
-    /*
-     * Replace me...
-     */
+    var adoptionInstance;
+
+    web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+
+      var account = accounts[0];
+
+      App.contracts.Adoption.deployed().then(function(instance) {
+        adoptionInstance = instance;
+
+        return adoptionInstance.adopt(petId, {from: account});
+      }).then(function(result){
+        return App.markAdopted()
+      }).catch(function(err) {
+        console.log(err.message);
+      })
+    })
   },
 
   markAdopted: function(adopters, account) {
@@ -73,7 +89,7 @@ App = {
   App.contacts.Adoption.deployed().then(function(instance) {
     adoptionInstance = instance;
 
-    return adoptionInstance.getADopters.call();
+    return adoptionInstance.getAdopters.call();
   }).then(function(adopters) {
     for (var i = 0; i < adopters.length; i++) {
       if (adopters[i] !== '0x0000000000000000000000000000000000000000') {
