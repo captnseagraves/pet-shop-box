@@ -24,17 +24,31 @@ App = {
   },
 
   initWeb3: function() {
-    /*
-     * Replace me...
-     */
+    //Initialize web3 andset the provider to the testrpc
+    if (typeof web3 !== 'undefined') {
+      App.provider = web3.currentProvider;
+      web3 = new Web3(web3.currentProvider);
+    } else {
+      //set provider you want from Web3.providers
+      App.web3Provider = new web3.providers.HttpProvider('http://localhost:8545');
+      web3 = new Web3(App.web3Provider)
+    }
 
     return App.initContract();
   },
 
   initContract: function() {
-    /*
-     * Replace me...
-     */
+  $.getJSON('Adoption.json', function(data){
+    //Get necessary contract artifact file and instantiate it with truffle-contract.
+    var AdoptionArtifact = data;
+    App.contracts.Adoption = TruffleContract(AdoptionArtifact);
+
+    // Set the provider for our contact.
+    App.contracts.Adoption.setProvider(App.web3Provider);
+
+    //Use our contract to retrieve and mark the adopted pets.
+    return App.markAdopted();
+  })
 
     return App.bindEvents();
   },
@@ -54,9 +68,22 @@ App = {
   },
 
   markAdopted: function(adopters, account) {
-    /*
-     * Replace me...
-     */
+  var adoptionInstance;
+
+  App.contacts.Adoption.deployed().then(function(instance) {
+    adoptionInstance = instance;
+
+    return adoptionInstance.getADopters.call();
+  }).then(function(adopters) {
+    for (var i = 0; i < adopters.length; i++) {
+      if (adopters[i] !== '0x0000000000000000000000000000000000000000') {
+        $('.panel-pet').eq(i).find('button').text('Pending...').attr('disabled', true);
+      }
+    }
+  }).catch(function(err) {
+    console.log(err.message)
+  })
+
   }
 
 };
